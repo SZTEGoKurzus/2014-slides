@@ -1,0 +1,308 @@
+Go kurzus
+Bevezetés
+
+Demeter-Haludka Tamás
+Software architect, Pronovix
+tamas@pronovix.com
+
+* Go
+
+.image 01/gopher.jpg
+
+* Előfeltételek
+
+- prog1
+- angol szakirodalom megértése
+- angol irc
+
+Javasolt:
+
+- Clean Code könyv
+- git ismeret
+
+* Kurzussal kapcsolatos információ
+
+.link https://github.com/SZTEGoKurzus
+
+* Teljesítési feltételek
+
+Projektmunka (2-5 fős csapatok)
+
+- a szemeszter közepén kerül kihirdetésre
+- ha valakinek ötlete van, a 3. óráig szóljon
+- emailben kell elküldeni a zipet vagy Githubon
+- határidő: vizsgaidőszak kezdete
+- ha hamarabb küldi egy csapat, akkor van lehetőség a javításra
+- minden beküldött projekt forráskódja kikerül Githubra a nevetekkel!
+
+* Projektmunka osztályzási feltételek
+
+* 2:
+
+- lefordul
+- jól formázott (erről később)
+- csak angol elnevezések
+- helyesen működik
+
+* 3:
+
+- dokumentált, jól olvasható kód
+- nincsenek értelmetlen nevek (my, custom stb)
+
+* 4:
+
+- tesztek (90% feletti coverage)
+
+* 5:
+
+- profiling dokumentáció
+
+* Történet, motiváció
+
+2007-ben indult a tervezése a Google-nél
+
+Fő tervezők:
+- Robert Griesemer, Rob Pike (Unix, Plan9, UTF-8), Ken Thompson (Unix, B, UTF-8)
+- Később: Ian Lance Taylor, Russ Cox
+
+2009-ben lett nyílt forrású
+
+Teljesen a közösség fejleszti
+Stabil 2012-től
+
+* A Google problémái
+
+Rengeteg hardware
+
+Rengeteg software
+
+- C++ (főként), Java, Python
+- Több ezer fejlesztő
+- Rengeteg kód
+- Elosztott build rendszer
+
+* A Go céljai
+
+- gyors build
+- produktív fejlesztés
+- egyszerű karbantarthatóság
+
+Olyanok tervezték, akik nagyon sok kódot írnak/debuggolnak/karbantartanak
+
+Nem programnyelv kutatási célokra készült, hanem a készítői életének egyszerűbbé tételére
+
+* Első reakciók
+
+X dolog hiányzik a nyelvből
+
+Ez rossz megközelítés
+
+* Mitől nehéz C++/Java fejleszés?
+
+- lassú build
+- függőségek
+- minden program más dolgokat használ ki a nyelvből (C++)
+- nehéz megérteni más kódját
+- verziózás
+- nehéz kódelemzés (C++ template)
+- cross-language builds
+
+* Fókusz
+
+A Go célja, hogy ezeket a problémákat megoldja
+
+* Build a Google-nél 2007-ben
+
+Egy fő Google alkalmazás
+
+- 2000 fájl
+- 4.2 MB
+- 8 GB-nyi függőség megy a fordítónak
+- 2 kB adat megy a fordítónak minden byte C++ kódhoz
+- órákig tart lefordítani
+
+Az elosztott build rendszerrel 2007-ben 45 perc volt lefordítani, 2012-ben már csak 27 perc
+
+* Nagyobb felhasználók
+- Google downloads (beépített webszerver)
+- BBC (backend játékokhoz, social media crawlers, web service-ek)
+- bit.ly (NSQ: real time distributed message processing)
+- Disqus (real time)
+- GitHub (releases api endpoint)
+- Heroku (Doozer - distributed datastore)
+- Poptip
+- SoundCloud (Bazooka - build & deployment)
+- Tumblr (Circuit - elosztott műveletek (parancs végrehajtás N gépen))
+- Twitch (Group chat) 
+
+* Concurrency vs parallelism
+
+* A modern világ párhuzamos
+
+Több mag
+
+Hálózatok
+
+Sok CPU
+
+Sok felhasználó
+
+* Go és concurrency
+
+- concurrent végrehajtás
+- szinkronizáció
+- párhuzamos elágazás
+
+* Concurrency vs parallelism
+
+A kettő nem ugyanaz
+
+"Futtattam X algoritmust 4 processzoron, és lassabb lett"
+
+* Concurrency
+
+Egymástól független részegységekre bontás, majd ezek kombinálása.
+
+* Parallelism
+
+Egy időben futó programkódok
+
+* Concurrency vs parallelism
+
+Concurrency: több dologgal foglalkozni egy időben
+Parallelism: több dolgot csinálni egy időben
+
+Concurrency: program strukturálás
+Parallelism: program végrehajtás
+
+* Concurrency és kommunikáció
+
+Concurrency: a program kis darabokra van bontva, amik egymástól függetlenül futnak
+
+Kommunkáció: a több futó művelet összehangolása
+
+CSP: C. A. R. Hoare: Communicating Sequential Processes (CACM 1978)
+
+* Példa
+
+Régi könyvek elégetése
+
+.image 01/gophersimple1.jpg
+
+* Példa
+
+.image 01/gophersimple3.jpg
+
+* Példa
+
+.image 01/gophersimple2.jpg
+
+* Példa
+
+.image 01/gophersimple4.jpg
+
+* Példa
+
+.image 01/gophercomplex0.jpg
+
+* Példa
+
+.image 01/gophercomplex1.jpg
+
+* Példa
+
+.image 01/gophercomplex2.jpg
+
+* Példa
+
+.image 01/gophercomplex3.jpg
+
+* Példa
+
+.image 01/gophercomplex4.jpg
+
+* Példa
+
+.image 01/gophercomplex5.jpg
+
+* Példa
+
+.image 01/gophercomplex6.jpg
+
+* Telepítés
+
+.link http://golang.org/doc/install http://golang.org/doc/install
+
+* Hogyan dolgozzunk?
+
+Workspace
+- src
+- pkg
+- bin
+
+GOPATH:
+célszerű 2 könyvtár: contrib, custom
+
+	GOPATH="$HOME/go/contrib:$HOME/go/custom"
+
+* Első program
+
+	mkdir -p src/github.com/tamasd/helloworld
+	cd src/github.com/tamasd/helloworld
+	vim helloworld.go
+	go run helloworld.go
+
+.play 01/helloworld.go
+
+	go install helloworld.go
+
+* Első library
+
+	mkdir -p src/github.com/tamasd/hellomath
+	cd src/github.com/tamasd/hellomath
+	vim hellomath.go
+
+.code 01/hellomath.go
+
+	go build
+	
+* Remote packages
+
+	go get github.com/tamasd/hellomath
+
+* Mivel dolgozzunk?
+
+.link https://github.com/visualfc/liteide https://github.com/visualfc/liteide
+.link https://github.com/fatih/vim-go https://github.com/fatih/vim-go
+.link http://go-ide.com http://go-ide.com
+
+* Ha már Rob Pike
+
+Kis adalék a végére:
+Rob Pike 5 programozási szabálya
+
+* 1
+
+You can't tell where a program is going to spend its time. Bottlenecks occur in surprising places, so don't try to second guess and put in a speed hack until you've proven that's where the bottleneck is.
+
+* 2
+
+Measure. Don't tune for speed until you've measured, and even then don't unless one part of the code overwhelms the rest.
+
+* 3
+
+Fancy algorithms are slow when n is small, and n is usually small. Fancy algorithms have big constants. Until you know that n is frequently going to be big, don't get fancy. (Even if n does get big, use Rule 2 first.)
+
+* 4
+
+Fancy algorithms are buggier than simple ones, and they're much harder to implement. Use simple algorithms as well as simple data structures.
+
+* 5
+
+Data dominates. If you've chosen the right data structures and organized things well, the algorithms will almost always be self-evident. Data structures, not algorithms, are central to programming.
+
+* Hasonló gondolatok
+
+- 1, 2: Tony Hoare - "Premature optimization is the root of all evil."
+- 3, 4: Ken Thompson - "When in doubt, use brute force."
+- 5: Fred Brooks (The Mythical Man-Month) - "write stupid code that uses smart objects"

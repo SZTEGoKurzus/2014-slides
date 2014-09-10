@@ -1,0 +1,229 @@
+Go kurzus
+A Go alapjai
+
+Demeter-Haludka Tamás
+Software architect, Pronovix
+tamas@pronovix.com
+
+* Miről lesz ma szó?
+
+- csomagok
+- láthatóság
+- vezérlési szerkezetek
+
+* Csomagok
+
+.image 02/seven-box.jpg _ 978
+
+* package kulcsszó
+
+.play -edit -numbers 02/package.go /START OMIT/,/END OMIT/
+
+A csomag nevének betűvel kell kezdődnie, majd tetszőleges számú unicode karakter követi.
+
+* main package
+
+A futtatható állomány helye. A `main` csomag `main()` függvénye felel meg C-ben az `int` `main(int,` `char**)` függvénynek.
+
+* Csomagok rendezése
+
+- minden forrásfájl a `package` kulcsszóval kezdődik
+- egy könyvtár = egy csomag
+ 
+* import kulcsszó
+
+`package` után, minden más előtt
+
+.play -numbers 02/import1.go /START OMIT/,/END OMIT/
+
+* Több soros import
+
+.play 02/import2.go /START OMIT/,/END OMIT/
+
+* Felesleges csomagok
+
+Felesleges csomagok importálásánál nem fordul
+
+.play 02/import3.go /START OMIT/,/END OMIT/
+
+.play 02/import4.go /START OMIT/,/END OMIT/
+
+* Linkelés
+
+- csak statikus linkelés támogatott
+- dinamikus linkelés nincs, csak gccgo-val
+
+* Láthatóság
+
+.image 02/visibility.gif _ 978
+
+* Motiváció
+
+.code 02/visibility.java /START1 OMIT/,/END1 OMIT/
+
+* Motiváció
+
+.code 02/visibility.java /START2 OMIT/,/END2 OMIT/
+
+* Láthatóság
+
+Csak csomag szintű
+
+Egyszerű szabály:
+
+- kis betű: private
+- nagy betű: public
+
+* Láthatóság
+
+.play 02/visibility.go
+
+* Változók
+
+* Változók
+
+.play 02/variables.go /START0 OMIT/,/END0 OMIT/
+
+Üres érték
+
+* Változók
+
+.play 02/variables.go /START1 OMIT/,/END1 OMIT/
+
+* Változók
+
+.play 02/variables.go /START2 OMIT/,/END2 OMIT/
+
+* Változók
+
+.play 02/variables.go /START3 OMIT/,/END3 OMIT/
+
+* Változók
+
+.play 02/variables.go /START4 OMIT/,/END4 OMIT/
+
+* Változók
+
+.play 02/variables.go /START5 OMIT/,/END5 OMIT/
+
+* Változók
+
+Használatlan változó fordítási hiba
+
+* Vezérlési szerkezetek
+
+.image 02/hatter.jpg _ 978 
+
+* if
+
+.play 02/ctrl.go /START1 OMIT/,/END1 OMIT/
+
+* if
+
+.play 02/ctrl.go /START2 OMIT/,/END2 OMIT/
+
+* for
+
+.play 02/ctrl.go /START3 OMIT/,/END3 OMIT/
+
+Ez a `while` ciklusnak felel meg
+
+* for
+
+.play 02/ctrl.go /START4 OMIT/,/END4 OMIT/
+
+"Hagyományos" `for` ciklus
+
+* for
+
+.play 02/ctrl.go /START5 OMIT/,/END5 OMIT/
+
+* switch
+
+.play 02/ctrl.go /START6 OMIT/,/END6 OMIT/
+
+* type switch
+
+.play 02/ctrl.go /START7 OMIT/,/END7 OMIT/
+
+* Függvények
+
+.play 02/ctrl.go /START8 OMIT/,/END8 OMIT/
+
+* Paraméter
+
+.play 02/ctrl.go /START9 OMIT/,/END9 OMIT/
+
+* Változó számú paraméterek
+
+.play 02/ctrl.go /START10 OMIT/,/END10 OMIT/
+
+* Return
+
+.play 02/ctrl.go /START11 OMIT/,/END11 OMIT/
+
+* Több return
+
+.play 02/ctrl.go /START12 OMIT/,/END12 OMIT/
+
+* Named return
+
+.play 02/ctrl.go /START13 OMIT/,/END13 OMIT/
+
+* Nincs ;, de...
+
+- ki lehetne rakni
+- de ez a fordítás során automatikusan megtörténik
+
+.link http://golang.org/ref/spec#Semicolons Language specification
+
+* init() fgv
+
+- fájlonként egy lehet belőle
+- `main()` előtt fut le
+- nem lehet rá hivatkozni
+- a függőségekben rekurzívan fut le
+
+* blank identifier
+
+.play 02/ctrl.go /START14 OMIT/,/END14 OMIT/
+
+* go fmt
+
+	go fmt app.go
+
+Megformázza a fájlt a Go coding standard alapján
+
+Célszerű minden mentéskor
+
+* Példák
+
+* FizzBuzz
+
+Számoljunk el 1-től 100-ig.
+
+Ha a szám oszható:
+- 3-mal, akkor írjuk ki, hogy "Fizz"
+- 5-tel, akkor írjuk ki, hogy "Buzz"
+- 3-mal és 5-tel, akkor írjuk ki, hogy "FizzBuzz"
+- egyébként a számot
+
+* FizzBuzz
+
+.play 02/fizzbuzz.go
+
+* Három szám összege 0
+
+Adott egy lista számokkal. Van-e olyan 3 szám ebből a listából, aminek az összege 0?
+
+* Három szám összege 0
+
+.play 02/haromosszege0.go
+
+* Páros fibonacci összeg
+
+Mennyi a páros, 4000000 alatti fibonacci számok összege?
+
+* Páros fibonacci összeg
+
+.play 02/evenfib.go

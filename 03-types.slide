@@ -1,0 +1,398 @@
+Go kurzus
+Típusok
+
+Demeter-Haludka Tamás
+Software architect, Pronovix
+tamas@pronovix.com
+
+* Projektmunkák
+
+Kihirdetés és beosztás jövő héten.
+
+* Típusok
+
+Static, strong, type inference
+
+* Strong
+
+- garancia, hogy bizonyos típusú hibák nem fordulhatnak elő
+- nincs automatikus típuskonverzió
+
+* Static
+
+Minden változó típusa ismert fordítási időben
+
+* Type inference
+
+Ha a típust egyértelműen ki tudja találni a fordító, akkor nem kell külön kiírni.
+
+* Szintaxis
+
+	type Nev alaptipus
+
+* Primitív alaptipusok
+
+	uint8, uint16, uint32, uint64
+	int8, int16, int32, int64
+	float32, float64
+	complex64 (2x float32), complex128 (2x float64)
+
+	int, uint
+
+	byte = uint8
+
+* Típuskonverzió
+
+.play 03/typeconvert.go
+
+* Típuskonverzió
+
+.play 03/typeconvert2.go
+
+* String
+
+	rune = int32
+	string = []rune
+
+Teljes unicode támogatás
+
+* Tömb
+
+	[]típus
+	[5]típus
+
+	x := []int{1, 2, 3}
+
+	len(x) // hossz
+
+	arr := make([]int, 32)
+
+* Tömb
+
+.play 03/array.go
+
+* append()
+
+	append([]T, T...)
+
+Hozzáad elemeket egy tömbhöz, ezzel új tömböt létrehozva
+
+* Slice
+
+	s0 := x[:]
+	s1 := x[1:]
+	s2 := x[:5]
+
+* Pointer
+
+Szokásos C jelölés. `*` a típus előtt, `*` a dereferencia, `&` a referencia képzés.
+
+* Struct
+
+	type User struct {
+		ID   string
+		Name string
+		Mail string
+	}
+
+	v := User{} // Üres struktúra
+	vp := &User{} // Üres struktúrára pointer
+	vn := new(User) // Ugyanaz, csak ritkán használt
+
+* Embedding
+
+	type Profile struct {
+		User
+		Twitter  string
+		Facebook string
+	}
+
+* Függvény
+
+	type Callback func(r Result) Result
+
+* Closure
+
+	hypot := func(x, y float64) float64 {
+		return math.Sqrt(x*x + y+y)
+	}
+
+* Map
+
+	map[kulcstípus]értéktípus
+
+	x := map[string]int{
+		"0": 0,
+		"1": 1,
+	}
+
+	m := make(map[int]int)
+
+* Map
+
+	v := m[5]
+
+	v, ok := m[5]
+	if !ok {
+		fmt.Println("Nincs ilyen elem")
+	}
+
+	m[128] = 65536
+
+	delete(m, 4096)
+
+* Method set
+
+Minden típushoz definiálhatóak metódusok abban a csomagban, ahol definiálva vannak.
+
+- `T` → `T`
+- `*T` → `T` és `*T`
+
+`T` nem tudja módosítani az értéket, de `*T` igen
+
+Általában a `*T` kell
+
+* Method set
+
+	func (v T) Method(arg0, arg1 string) int {
+	}
+
+* Példa
+
+.play 03/vertex.go /START OMIT/,/END OMIT/
+
+* Példa
+
+	type Door bool
+
+	func (d *Door) Open() {
+		*d = true
+	}
+
+	func (d *Door) Close() {
+		*d = false
+	}
+
+* Kérdés
+
+Vajon, ha minden típuson lehet metódusokat definiálni, akkor a függvény típosokon is?
+
+* interface
+
+Hasonló a Java-hoz, de itt implicit implementálják a típusok.
+
+	type OpenCloser interface {
+		Open()
+		Close()
+	}
+
+Nincs `implements`.
+
+Interface típuson nem lehet metódusokat definiálni :(
+
+* interface embedding
+
+	type OpenCloserDisabler interface {
+		OpenCloser
+		Disable()
+	}
+
+Itt is működik az embedding, akárcsak a struktúráknál.
+
+* HTTP példa
+
+	type Handler interface {
+		ServeHTTP(ResponseWriter, *Request)
+	}
+
+* HTTP példa
+
+	type HandlerFunc func(ResponseWriter, *Request)
+
+	func (f HandlerFunc) ServeHTTP(w ResponseWriter, r *Request) {
+		f(w, r)
+	}
+
+Így már egyszerű:
+
+	http.Handle("/foo", HandlerFunc(func(w http.ResponseWriter, r *http.Request)) {
+		w.Write([]byte("OK"))
+	})
+
+De erre van shortcut:
+
+	http.HandleFunc("/foo", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("OK"))
+	})
+
+* interface{}
+
+Minden típus implementálja.
+
+Kb megfelel Java-ban az `Object` ősosztálynak, vagy C-ben a `void*` típusnak.
+
+* implements trükk
+
+	var _ InterfaceType = &Struct{}
+
+* type assertion
+
+.play 03/typeassertion.go
+
+* type assertion
+
+.play 03/typeassertion2.go
+
+* Generics
+
+Nincs. Van helyette az interface rendszer, és type assertion.
+Mi van akkor, ha containert írok?
+
+* Generics - Kihagyjuk (C, Go)
+
+- Lassítja a programozókat 
+- Nem ad komplexitást a nyelvhez.
+
+* Generics - Fordítási időben generálódik (C++)
+
+- Lassítja a fordítást 
+- Sok felesleges kódot generál 
+- Linker bonyolítás
+- L* cache rosszul lehet kihasználva
+- A text szegmens óriásira nőlhet
+
+* Generics - Csomagoljunk be mindent futási időben (Java)
+
+- Lassítja a végrehajtást
+- Tárhely szempontból (byte vektor)
+- L* cache kihasználása szempontjából hatékony lehet
+
+* Generics - Hátrányok
+
+\.NET CLR
+
+`List<T>` 28 típust hoz létre. 5 különböző `List<T>` 300k disk helyet és 70k memóriát foglal.
+
+Bővebben:
+
+.link http://joeduffyblog.com/2011/10/23/on-generics-and-some-of-the-associated-overheads/ On generics and (some of) the associated overheads
+
+* OOP?
+
+Objektum "hajlamos"
+
+* Kompozíció öröklődés helyett
+
+- nincs öröklődés
+- tisztább elválasztás, nincsenek implementációs részletek
+- flexibilisebb
+- egyes nyelvekben `trait` vagy `mixin` formájában is jelen van
+
+* Többszörös öröklődés emulálása kompozícióval
+
+	type Foo int
+
+	func (f Foo) Frobnicate() {
+		...
+	}
+
+	func (f Foo) Baznicate() {
+		...
+	}
+
+	type Bar uint
+
+	func (b Bar) Frobnicate() {
+		...
+	}
+
+	func (b Bar) Barnicate() {
+		...
+	}
+
+* Többszörös öröklődés emulálása kompozícióval
+
+	type FooBar struct {
+		Foo
+		Bar
+	}
+
+	fb := FooBar{1, 2}
+	fb.Foo.Frobnicate()
+	fb.Bar.Frobnicate()
+	fb.Baznicate()
+	fb.Barnicate()
+
+Ha egyértelműen eldönthető, akkor engedi a rövidebb írásmódot, egyébként nem.
+
+* Konstansok
+
+	const Név1 Típus = "érték"
+	const Név2 = "érték"
+
+	const (
+		Név1 Típus = "érték1"
+		Név2       = "érték2"
+	)
+
+* Konstansok és típusok
+
+- nincs típusa
+- csak ha explicit megadott
+- változó létrehozásakor (`:=`) van egy alapértelmezett típus
+- származtatott típusok esetén automatikusan felveszi a típust
+
+* iota
+
+Egy speciális érték, ami deklarációs blokkonként visszaáll 0-ra.
+
+* iota
+
+	type Flag uint64
+
+	const (
+		A Flag = 1 << iota
+		B Flag = 1 << iota
+		C Flag = 1 << iota
+		D Flag = 1 << iota
+		E Flag = 1 << iota
+	)
+
+* iota
+
+	type Flag uint64
+
+	const (
+		A Flag = 1 << iota
+		B
+		C
+		D
+		E
+		_
+		G
+	)
+
+* iota
+
+	const (
+		bit0, mask0 = 1 << iota, 1<<iota - 1
+		bit1, mask1
+		_, _
+		bit3, mask3
+	)
+
+* Feladatok - rot13 olvasó
+
+.play 03/rot13.go /START1 OMIT/,/END1 OMIT/
+
+* Feladatok - rot13 olvasó
+
+.play 03/rot13.go /START2 OMIT/,/END2 OMIT/
+
+* Feladatok - Fibonacci generátor
+
+.play 03/fib.go /START1 OMIT/,/END1 OMIT/
+
+* Feladatok - Fibonacci generátor
+
+.play 03/fib.go /START2 OMIT/,/END2 OMIT/

@@ -4,4 +4,4 @@ A diák elérhetőek a [present](http://godoc.org/code.google.com/p/go.tools/cmd
 
 - [01-intro.slide](http://go-talks.appspot.com/github.com/SZTEGoKurzus/2014-slides/01-intro.slide)
 - [02-ctrlstruct.slide](http://go-talks.appspot.com/github.com/SZTEGoKurzus/2014-slides/02-ctrlstruct.slide)
-- [03-types.slide](http://go-talks.appspot.com/github.com/SZTEGoKurzus/2014/slides/03-types.slide)
+- [03-types.slide](http://go-talks.appspot.com/github.com/SZTEGoKurzus/2014-slides/03-types.slide)

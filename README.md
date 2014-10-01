@@ -6,3 +6,7 @@ A diák elérhetőek a [present](http://godoc.org/code.google.com/p/go.tools/cmd
 - [02-ctrlstruct.slide](http://go-talks.appspot.com/github.com/SZTEGoKurzus/2014-slides/02-ctrlstruct.slide)
 - [03-types.slide](http://go-talks.appspot.com/github.com/SZTEGoKurzus/2014-slides/03-types.slide)
 - [04-errors.slide](http://go-talks.appspot.com/github.com/SZTEGoKurzus/2014-slides/04-errors.slide)
+
+Doksik:
+
+- [projects.article](http://go-talks.appspot.com/github.com/SZTEGoKurzus/2014-slides/projects.article)

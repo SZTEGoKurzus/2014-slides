@@ -1,0 +1,236 @@
+Go kurzus
+Hibakezelés és egyéb apróságok
+
+Demeter-Haludka Tamás
+Software architect, Pronovix
+tamas@pronovix.com
+
+* Projektmunkák
+
+.image 04/project.jpg _ 978
+
+* Cluster controller (3+2 hallgató)
+
+Előfeltétel: erős gép (8-16+ GB RAM, 50-100 GB HDD, Core i7)
+
+- UDP szerver
+- Broadcastol induláskor
+- Begyűjti a peerek listáját és pingeli őket
+- Jelenti ha valaki kilép/belép
+- deb vagy rpm csomag + initscript
+
++2 hallgató
+
+- Process management
+- Supervisor tree
+
+Vagrant, Docker
+
+* Job server (3 hallgató)
+
+- Nem kell authentikáció
+- REST API (nem kell framework, elég a beépített http.ServeMux)
+- YAML fájlból beolvassa a jobokat (shell parancsok)
+- Ha a shell parancs nem 0-val tér akkor emailt küld
+- Vezeti, hogy melyik job mikor futott le, és milyen eredménnyel, milyen paraméterekkel
+- Callback URL
+- Példa tesztek: magát az alkalmazást teszteli, buildeli, telepíti, újraindítja
+- deb vagy rpm csomag + initscript
+- Endpointok: POST /:job lefuttat jobot, GET / joblista, GET /:job kilistázza az adott job futását, GET /:job/:runN futással kapcsolatos bővebb információ
+
+* Shoutcast-klón (4 hallgató)
+
+- IDv* tagek
+- status oldal
+- deb vagy rpm csomag + initscript
+
+* Szintetizátor (3 hallgató)
+
+- pulseaudio
+- GUI opcionális
+- kotta lejátszás
+- live play (billentyűzettel) + looping
+- egyszerű támogatás hangszerek definiálására
+- többsávos lejátszás
+
+* MUD szerver (5 hallgató)
+
+- Szöveges MMORPG, szöveges protokoll
+- TCP + SSL
+- A játék legalább 20-25 helyszínből álljon (50 ajánlott)
+- Két karakterosztály minimum (harcos/varázsló, csempész/hacker stb)
+- XP, szintlépés
+- Karakterlap + inventory
+- deb vagy rpm csomag + initscript
+
+* MUD kliens (2-3 hallgató)
+
+- qml vagy ncurses
+- opcionális SSL támogatás
+- alias
+- trigger (globbing match/regex match)
+- scripting (lua?)
+
+Readline-szerű funkcionalitás:
+
+- kurzor mozgatás
+- history
+- tab kiegészítés
+
+* Chat szerver (3+1+1 hallgató)
+
+- SSL IRC-szerű protokoll
+- qml kliens
+- szobák, szobalista
+- csatlakozás szobához
+
++1 fő:
+
+- logolás, állapotmentés
+
++1 fő:
+
+- keresés (gyors)
+
+* Projekt kiosztás 
+
+.image 04/mrsmileys.png _ 978
+
+* Hibák és kezelésük
+
+.image 04/mistake.png _ 978
+
+* Hibakezelési stratégiák
+
+- defensive programming
+- let it crash (Erlang)
+
+* Hibák típusai
+
+- várt hibák
+- nem várt hibák
+
+* Várt hibák
+
+- file nem olvasható
+- hálózati kapcsolat megszakad
+- érvénytelen formátum (pl JSON)
+
+* error
+
+	type error interface {
+		Error() string
+	}
+
+	func Read([]byte) (int, error)
+
+	errors.New(string) error
+
+* error
+
+.play 04/error.go /START OMIT/,/END OMIT/
+
+* Finally
+
+	func Frobnicate() error {
+		r, err := resource.Acquire()
+		if err != nil {
+			r.Release()
+			return err
+		}
+
+		b := make([]byte, 64)
+		if n, err := r.Read(b); err != nil {
+			r.Release()
+			return err
+		} else if n != 64 {
+			r.Release()
+			return errors.New(fmt.Sprintf("Only %d bytes returned", n))
+		}
+
+		r.Release()
+		return nil
+	}
+
+* defer
+
+	defer kifejezés
+
+	defer foo.Frobnicate()
+	defer func() {
+		...
+	}()
+
+- függvény legvégén fut le
+- stack (legutoljára hívott defer először)
+- nem nagy teljesítményvesztés
+- az argumentumok akkor értékelődnek ki, amikor a `defer` kifejezés lefut
+
+* defer
+
+	func f() {
+		i := 0
+		defer fmt.Println(i) // 0
+		i++
+		return
+	}
+	
+	func g() (result int) {
+		defer func() {
+			result++
+		}()
+		return 0
+	}
+
+* defer
+
+	f, _ := os.Open("foo.txt")
+	defer f.Close()
+
+* Nem várt hibák
+
+- tömb túlindexelés
+- értelmetlen művelet
+- az alkalmazás inkonzisztens állapotba kerül
+
+* panic
+
+.image 04/panic.jpg _ 978
+
+* panic
+
+	panic("error msg")
+
+- megszakad a futás
+- defer kifejezések végrehajtódnak
+- ha nem kapja el semmi, akkor a stack tetején meghal a program
+
+* panic
+
+.play 04/panic.go
+
+* recover
+
+.image 04/recover.jpg _ 978
+
+* recover
+
+- elkapja a panic-ot
+- defer statementeknél használható
+- ha nincs panic, semmi hatása nincs
+
+* recover
+
+.play 04/recover.go
+
+* godoc
+
+.image 04/doc.jpg _ 978
+
+* godoc
+
+- bármit dokumentálni akarunk, csak fölé írjuk a commentet
+- üres comment sor új bekezdés
+- tabbal behúzott szöveg formázás nélkül jelenik meg (kód)
+- linkek automatikus konvertálása
+- doc.go

@@ -1,0 +1,256 @@
+Go kurzus
+Concurrency
+
+Demeter-Haludka Tamás
+Software architect, Pronovix
+tamas@pronovix.com
+
+* Kis reklám
+
+.link https://education.github.com/pack GitHub Student Developer Pack
+
+* Projektmunkák
+
+- kész a beosztás
+- specifikáció első piszkozat fent van
+
+* Concurrency
+
+.image 05/matrix.jpg _ 978
+
+* goroutine
+
+- függvény
+- párhuzamosan (concurrent) fut
+- egy címtér
+- nagyon kicsi költség
+- multiplexelve vannak az operációs rendszer threadjei közt
+
+* goroutine
+
+	go f.Foo()
+	
+	go bar(x)
+
+	go func() {
+		...
+	}()
+
+* mutex
+
+- sync csomag
+- nem kell inicializálni
+- alap állapotban nyitott
+
+* mutex
+
+	type Processor struct {
+		...
+		mtx sync.Mutex
+	}
+
+	func (p *Processor) Process(f Value) Value {
+		p.mtx.Lock()
+		defer p.mtx.Unlock()
+
+		return p.frobnicate(v)
+	}
+
+* Mi van akkor, ha 100000 goroutine van?
+
+.image 05/spoon.jpg _ 978
+
+* channels
+
+* channels
+
+	var ch chan string
+
+	// unbuffered
+	make(chan int)
+	make(chan int, 0)
+
+	// buffered
+	make(chan int, 128)
+
+	ch <- ""
+
+	s := <-ch
+
+	close(ch) // panic ha küldeni próbálunk üzenetet
+
+	val, closed := <-ch
+
+* channels
+
+	func processor(input chan string) chan string {
+		ch := make(chan string)
+
+		go func() {
+			for s := range input {
+				ch <- process(s)
+			}
+		}()
+
+		return ch
+	}
+
+Mi van akkor, ha nem csak egy goroutine akarja használni?
+
+* channels
+
+	func processor(input chan string, reply chan chan string) {
+		for s := range input {
+			ch := <-reply
+			ch <- process(s)
+		}
+	}
+
+Mi ezzel a gond?
+
+* channels
+
+	type Message struct {
+		Value string
+		Reply chan string
+	}
+
+	func processor(mc chan Message) {
+		for c := range mc {
+			c.Reply <- process(c.Value)
+		}
+	}
+
+Mi van akkor, ha több dolgot akarunk feldolgozni?
+
+* select
+
+	in := make(chan string)
+	out := make(chan string)
+
+	select {
+	case s := <-in:
+		fmt.Printf("msg received: %s\n", s)
+	case out <- "ok":
+		fmt.Println("msg sent")
+	default:
+		fmt.Println("no message")
+	}
+
+- ha csak egy művelet hajható végre, akkor azt hajtja végre
+- ha több, akkor nemdeterminisztikusan választ (kivétel a `default`)
+- ha nincs `default`, akkor blokkol
+
+* select
+
+.play 05/random.go /START OMIT/,/END OMIT/
+
+* channels
+
+	type Processor {
+		StringInput chan StringMessage
+		IntInput    chan IntMessage
+		quit        chan struct{}
+	}
+
+	func (p *Processor) Start() {
+		for {
+			select {
+			case sm := <-p.StringInput:
+				sm.Reply <- p.processString(sm.Value)
+			case im := <- p.IntInput:
+				im.Reply <- p.processInt(im.Value)
+			case <-time.After(time.Hour):
+				fmt.Println("Bored")
+			case <-p.quit:
+				return
+			}
+		}
+	}
+
+	func (p *Processor) Quit() {
+		close(p.quit)
+	}
+
+* Do not communicate by sharing memory; instead, share memory by communicating.
+
+* Prím szita (Eratoszthenész szitája)
+
+* Prím szita (Eratoszthenész szitája)
+
+.play 05/sieve.go /START1 OMIT/,/END1 OMIT/
+
+* Prím szita (Eratoszthenész szitája)
+
+.play 05/sieve.go /START2 OMIT/,/END2 OMIT/
+
+* A go runtime-mal kapcsolatban...
+
+- alapértelmezetten 1 szálon fut 
+- GOMAXPROCS környezeti változó
+- `runtime.GOMAXPROCS(int)` `int`
+- `runtime.NumCPU()` `int`
+- `runtime.LockOSThread()` `runtime.UnlockOSThread()`
+
+Szervereknél gyakori:
+
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
+* sync csomag
+
+`sync.Mutex` már volt, de van még pár hasznos dolog
+
+* sync.RWMutex
+
+	var m sync.RWMutex
+	v := 0
+	
+	func foo() {
+		m.Lock()
+		defer m.Unlock()
+
+		v++
+	}
+
+	func bar() {
+		m.RLock()
+		defer m.RUnlock()
+
+		fmt.Println(v)
+	}
+
+Ha sokat olvasunk, és keveset írunk egy változót, akkor ez sokkal jobb, mint a `sync.Mutex`
+
+* sync.WaitGroup
+
+	var wg sync.WaitGroup
+
+	wg.Add(MAX)
+	for i := 0; i < MAX; i++ {
+		go func(i) {
+			defer wg.Done()
+			doOp(i)
+		}(i)
+	}
+
+	wg.Wait()
+
+* sync.Once
+
+.play 05/once.go /START OMIT/,/END OMIT/
+
+* Feladat: Fibonacci generátor
+
+.play 05/fibonacci.go /START1 OMIT/,/END1 OMIT/
+
+* Feladat: Fibonacci generátor
+
+.play 05/fibonacci.go /START2 OMIT/,/END2 OMIT/
+
+* Feladat: preorder fabejárás
+
+.play 05/tree.go /START1 OMIT/,/END1 OMIT/
+
+* Feladat: preorder fabejárás
+
+.play 05/tree.go /START2 OMIT/,/END2 OMIT/

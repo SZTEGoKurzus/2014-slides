@@ -1,0 +1,44 @@
+MUD kliens
+
+* UI lib
+
+QML vagy ncurses
+
+* Hálózat
+
+- opcionális SSL
+
+* rc file
+
+Egy fájl, ami induláskor lefut.
+
+* Parancsok
+
+- connect server port: csatlakozik egy szerverhez. Ha már van kapcsolat, akkor azt bontja.
+- alias aliasnev parancs argumentum0 argumentum1: rögzít egy alias-t
+- trigger pattern parancs argumentum0 argumentum1: rögzít egy triggert
+- loadscript fajlnev.?: betölt egy szkriptet
+
+* Alias
+
+Amennyiben a felhasználó az alias-t írja be, akkor az eredeti parancs megy a szerver felé.
+
+* Trigger
+
+A trigger egy mintából és egy parancsból áll. A minta lehet regex vagy glob (*?). Ha glob, akkor vissza kell fordítani regexre. A felismerés és pontos szintaktika egyeztetés alatt.
+
+Ha a szervertől olyan üzenet jön, amire illeszkedik egy minta, akkor a mintához kapcsolódó parancs elmegy a szerver felé. Ha ez a parancs egy alias, akkor azt fel kell oldani.
+
+* Scripting
+
+Valami szkriptnyelv (lua, javascript, lisp dialektus amit láttam, hogy van). Egyeztetés alatt.
+
+* Readline
+
+http://en.wikipedia.org/wiki/GNU_Readline
+
+A következő funkcionalitást tudnia kell annak szövegdoboznak/sornak, ahova a parancsot gépeli a felhasználó:
+
+- kurzor mozgatás
+- history
+- tab kiegészítés (aliasok, a hely leírásából használhat szavakat, egyeztetés alatt)

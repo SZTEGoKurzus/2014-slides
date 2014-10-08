@@ -1,5 +1,38 @@
 Projektmunkákkal kapcsolatos általános tudnivalók
 
+* Leadás
+
+Határidő: 2014 december 7. 23:59:59.
+
+Hamarabbi leadás esetén 1 héten belül kijavítom, és küldök javaslatokat arra vonatkozóan, hogy mivel lehetne jobb jegyet szerezni. Az újbóli leadás ilyenkor lehetséges, jegyet rontani nem lehet.
+
+* Csomagolás
+
+A szerver alkalmazásokat csomagolni kell. A következő csomagformátumokat fogadom el:
+
+- deb
+- rpm
+- docker
+
+A hagyományos csomagok esetén a repo tartalmazzon egy Makefile-t, ami `make` `deb` vagy `make` `rpm` parancs után előállítja a csomagot. Hagyományos csomagok esetén a csomagnak tartalmaznia kell initscriptet.
+
+Docker esetén elég a Dockerfile.
+
+A docker a javasolt: https://blog.golang.org/docker
+
+* Általános követelmények 
+
+** Szerver alkalmazások
+
+- Semmilyen konfiguráció nem lehet a a forráskódban. Legyen egy tetszőleges formátumú konfigurációs fájl, ami nem része a beküldött projektnek, csak egy minta konfigurációs fájl. Pl: config.yaml, config.yaml.sample.
+- Ha környezeti változóként adott a `HOST` vagy a `PORT`, akkor ezeknek engedelmeskednie kell.
+- Az alkalmazás indulási ideje nem lehet 1 mp-nél több.
+- Minden log az stdoutra megy (a log csomag így működik alapértelmezetten).
+
+** Kliens alkalmazások
+
+- Semmilyen konfiguráció nem lehet a a forráskódban. A konfigurációs fájlt az alkalmazásnak kell a megfelelő helyre létrehoznia/mentenie. (Megfelelő hely platformfüggő, Windows, Linux, OSX támogatás kell).
+
 * Beosztás
 
 ** Job server

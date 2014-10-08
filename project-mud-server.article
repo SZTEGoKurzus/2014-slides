@@ -1,0 +1,52 @@
+MUD szerver
+
+* MUD
+
+http://en.wikipedia.org/wiki/MUD
+
+* Protokoll
+
+TCP + SSL
+
+* Helyszínek
+
+Min 20-25, ajánlott 50. A helyszínek leírása legyen valami szöveges fájlban (sima txt, yaml).
+
+A helyszín a következőket tartalmazza:
+
+- leírás
+- játékos meghal-e (pl víz, láva, űr)
+- szörnyek és újratermelődésük gyakorisága
+- speciális-e, és az ahhoz tartozó extra adatok
+
+** Speciális helyszínek
+
+Pl: bolt
+
+* Szörnyek
+
+- sebzés
+- hp
+- varázslat
+- dobott tárgy értéke (min, max)
+
+* Tárgyak
+
+- típus
+- dobási érték
+- típus specifikus attribútumok (sebzés, páncél)
+
+* Varázslatok
+
+- sebzés
+- hatás a játékoson (sebzés csökkentés X percig pl)
+
+* Karakterosztályok
+
+Minimum 2 különböző.
+
+* Karakter
+
+- tapasztalati pont, szint
+- karakterlap, alap attribútumok (pl erő, ügyesség, vitalitás, mana)
+- inventory

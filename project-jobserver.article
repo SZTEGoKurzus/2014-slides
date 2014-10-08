@@ -1,0 +1,46 @@
+Job server
+
+* Endpointok
+
+Minden endpoint JSON választ ad vissza. Hibák esetén a megfelelő HTTP status kódokat kell visszaadni. Erről bővebben: http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+
+** GET /
+
+Visszaad egy listát az elérhető jobokról. Minden jobról elég csak minimális információt adni (machine name, olvasható név, leírás).
+
+** POST /:job
+
+Előjegyez egy jobot lefutásra. Opcionális get paraméter a callback, amire egy POST hívást csinál (a futás által generált stdout és stderr kombinálva a POST adat), ha vége a jobnak.
+
+A POST-ként küldött adatot egy az egyben a job által definiált shell parancs stdin-jére másolja át.
+
+** GET /:job
+
+Visszaad minden információt a jobról, és egy rövid összegzést (futás száma, ideje, eredménye) a legutóbbi 20 futásról időrend szerint fordítva rendezve (legújabb elől).
+
+** GET /:job/:runN
+
+Egy adott job lefutásával kapcsolatos adatokat ad vissza (stdin ha volt, eredmény, shell parancs stdout + stderr).
+
+* Job
+
+A jobok egy YAML fájlban lesznek definiálva. Példa:
+
+	build-app:
+		command: git clone ... && cd ... && go build
+		dependencies: []
+		email: app-maintainer@example.com
+	cat:
+		command: cat
+		dependencies: []
+		email: cat-maintainer@example.com
+
+Ha a jobnak függőségei vannak, akkor azokat előbb le kell futtatni. Ha a függőségnek is vannak függőségei, akkor azokat is, rekurzívan.
+
+Ha a job futása hibával tér vissza (nem 0), akkor email-t kell küldeni.
+
+A jobok futási eredményét menteni kell (PostgreSQL, MySQL ajánlott, de lehet bármilyen más indexelt pernamens adattárolás). PostgreSQL, MySQL esetén az SQL schema fájl legyen mellékelve a projekthez, vagy az alkalmazás induláskor hozza létre a szükséges táblákat, ha nem léteznek.
+
+* Példa YAML fájlok
+
+Az alkalmazás mellékeljen példa YAML fájlokat, önmaga buildelésére, tesztelésére, telepítésére és újraindítására (függ a csomagolástól).

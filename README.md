@@ -11,3 +11,8 @@ A diák elérhetőek a [present](http://godoc.org/code.google.com/p/go.tools/cmd
 Doksik:
 
 - [projects.article](http://go-talks.appspot.com/github.com/SZTEGoKurzus/2014-slides/projects.article)
+- [project-jobserver.article](http://go-talks.appspot.com/github.com/SZTEGoKurzus/2014-slides/project-jobserver.article)
+- [project-synth.article](http://go-talks.appspot.com/github.com/SZTEGoKurzus/2014-slides/project-synth.article)
+- [project-mud-server.article](http://go-talks.appspot.com/github.com/SZTEGoKurzus/2014-slides/project-mud-server.article)
+- [project-mud-client.article](http://go-talks.appspot.com/github.com/SZTEGoKurzus/2014-slides/project-mud-client.article)
+- [project-chat.article](http://go-talks.appspot.com/github.com/SZTEGoKurzus/2014-slides/project-chat.article)

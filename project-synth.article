@@ -1,0 +1,26 @@
+Szintetizátor
+
+* Hasznos linkek
+
+- http://blog.campoy.cat/2014/02/singing-gophers.html
+- https://code.google.com/p/portaudio-go/
+
+Ajánlott QML GUI-t csinálni, mert a live play-nél sokkal egyszerűbbé teszi a billentyűzet kezelését.
+
+* Kotta fájl
+
+Formátum egyeztetés alatt.
+
+Több sáv egyidejű lejátszása.
+
+* Live play
+
+Megadott gombokra megadott hangok (konfigurálható). Ameddig a billentyű lenyomott, addig a kitartja a hangot.
+
+** Looping
+
+Egy megadott billentyűkombináció indítja el a loop felvételét. A billentyű leütésének hosszát is rögzíteni kell. A felvétel leállítása után a loop elkezd végtelenítve lejátszani. 
+
+* Hangszerek támogatása
+
+Egyeztetés alatt. Javaslat: WAV fájl, amikor a hangszer az A hangot kiadja.

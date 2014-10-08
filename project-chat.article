@@ -1,0 +1,30 @@
+Chat
+
+* Protokoll
+
+TCP+SSL. IRC-szerű plain text.
+
+* Kliens
+
+QML. Támogasson mindent, amit a szerver tud. A legutolsó látogatás óta az új üzeneteket töltse be.
+
+* Szerver
+
+- privát chat 2 felhasználó közt
+- nicknév beállítása
+- szobák (létrehozás, adminná tétel, bannolás (nick örökre, ip X óráig))
+- csatlakozás a szobához
+- szoba log X időpontig
+
+** Állapotmentés
+
+A szerver minden nem privát beszélgetést logol, és elmenti a szobák állapotát. Ha a szerver leáll, akkor ugyanarra az állapotra áll vissza, mint ami a leállás előtt volt.
+
+** Keresés
+
+Gyors keresés a logokban.
+
+Ötletek:
+
+- https://github.com/balzaczyy/golucene
+- http://lucene.apache.org/solr/

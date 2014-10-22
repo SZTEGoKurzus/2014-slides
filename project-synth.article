@@ -7,12 +7,6 @@ Szintetizátor
 
 Ajánlott QML GUI-t csinálni, mert a live play-nél sokkal egyszerűbbé teszi a billentyűzet kezelését.
 
-* Kotta fájl
-
-Formátum egyeztetés alatt.
-
-Több sáv egyidejű lejátszása.
-
 * Live play
 
 Megadott gombokra megadott hangok (konfigurálható). Ameddig a billentyű lenyomott, addig a kitartja a hangot.

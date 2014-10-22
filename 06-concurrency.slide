@@ -1,0 +1,586 @@
+Go kurzus
+Concurrency 2
+
+Demeter-Haludka Tamás
+Software architect, Pronovix
+tamas@pronovix.com
+
+* Projektmunkák
+
+* Kis ismétlés
+
+- Mi a goroutine?
+- Mi a channel?
+- Mi a select?
+
+* Banking service 0.1
+
+	func Transfer(amount float64, payer, payee *Account, server SomeServerType) error {
+		if payer.Balance() < amount {
+			return errors.New("Insufficient funds")
+		}
+		log.Printf("%s has sufficient funds", payer)
+		payee.Deposit(amount)
+		log.Printf("%s received payment", payee)
+		payer.Withdraw(amount)
+		log.Printf("%s made payment", payer)
+		server.UpdateBalances(payer, payee) 
+		return nil
+	}
+
+- float64-ben nem jó ötlet pénzt tárolni
+- ez nem thread safe
+
+* Banking service 0.2
+
+	type transfer struct {
+		payer *Account
+		payee *Account
+		amount float64
+	}
+	
+	var xferChan = make(chan *transfer)
+	var errChan = make(chan error)
+	func init() {
+		go transferLoop()
+	}
+
+* Banking service 0.2
+
+	func transferLoop() {
+		for xfer := range xferChan {
+			if xfer.payer.Balance < xfer.amount {
+				errChan <- errors.New("Insufficient funds")
+				continue
+			}
+			log.Printf("%s has sufficient funds", xfer.payer)
+			xfer.payee.Deposit(xfer.amount)
+			log.Printf("%s received payment", xfer.payee)
+			xfer.payer.Withdraw(xfer.amount)
+			log.Printf("%s made payment", xfer.payer)
+			errChan <- nil
+		}
+	}
+
+
+* Banking service 0.2
+
+	func Transfer(amount float64, payer, payee *Account, server SomeServerType) error {
+		xfer := &transfer{
+			payer: payer,
+			payee: payee,
+			amount: amount,
+		}
+
+		xferChan <- xfer
+		err := <-errChan
+		if err == nil  {
+			server.UpdateBalances(payer, payee) 
+		}
+		return err
+	}
+
+* Banking service 0.3
+
+	type Account struct {
+		balance float64
+	}
+
+	func (a *Account) Balance() float64 {
+		return a.balance
+	}
+
+	func (a *Account) Deposit(amount float64) {
+		log.Printf("depositing: %f", amount)
+		a.balance += amount
+	}
+
+	func (a *Account) Withdraw(amount float64) {
+		log.Printf("withdrawing: %f", amount)
+		a.balance -= amount
+	}
+
+* Banking service 0.4
+
+	type Account struct {
+		balance float64
+		deltaChan chan float64
+		balanceChan chan float64
+		errChan chan error
+	}
+
+	func NewAccount(balance float64) (a *Account) {
+		a = &Account{
+			balance:	 balance,
+			deltaChan:   make(chan float64),
+			balanceChan: make(chan float64),
+			errChan:	 make(chan error),
+		}
+		go a.run()
+		return
+	}
+
+* Banking service 0.4
+
+	func (a *Account) Balance() float64 {
+		return <-a.balanceChan
+	}
+
+	func (a *Account) Deposit(amount float64) error {
+		a.deltaChan <- amount
+		return <-a.errChan
+	}
+
+	func (a *Account) Withdraw(amount float64) error {
+		a.deltaChan <- -amount
+		return <-a.errChan
+	}
+
+	func (a *Account) applyDelta(amount float64) error {
+		newBalance := a.balance + amount
+		if newBalance < 0 {
+			return errors.New("Insufficient funds")
+		}
+		a.balance = newBalance
+		return nil
+	}
+
+* Banking service 0.4
+
+	func (a *Account) run() {
+		var delta float64
+		for {
+			select {
+			case delta = <-a.deltaChan:
+				a.errChan <- a.applyDelta(delta)
+			case a.balanceChan <- a.balance:
+			}
+		}
+	}
+
+* Pipeline
+
+Generátor
+
+	func gen(nums ...int) <-chan int {
+		out := make(chan int)
+		go func() {
+			for _, n := range nums {
+				out <- n
+			}
+			close(out)
+		}()
+		return out
+	}
+
+* Pipeline
+
+Processor
+
+	func sq(in <-chan int) <-chan int {
+		out := make(chan int)
+		go func() {
+			for n := range in {
+				out <- n * n
+			}
+			close(out)
+		}()
+		return out
+	}
+
+* Pipeline
+
+	func main() {
+		c := gen(2, 3)
+		out := sq(c)
+
+		fmt.Println(<-out) // 4
+		fmt.Println(<-out) // 9
+	}
+
+* Pipeline
+
+	func main() {
+		for n := range sq(sq(gen(2, 3))) {
+			fmt.Println(n) // 16 then 81
+		}
+	}
+
+* Fan-out
+
+Egy channelből több goroutine is tud olvasni.
+
+	func main() {
+		in := gen(2, 3)
+
+		c1 := sq(in)
+		c2 := sq(in)
+
+		for n := range merge(c1, c2) {
+			fmt.Println(n) // 4 then 9, or 9 then 4
+		}
+	}
+
+* Fan-in
+
+	func merge(cs ...<-chan int) <-chan int {
+		var wg sync.WaitGroup // !!
+		out := make(chan int)
+
+		output := func(c <-chan int) {
+			for n := range c {
+				out <- n
+			}
+			wg.Done() // !!
+		}
+		wg.Add(len(cs))
+		for _, c := range cs {
+			go output(c)
+		}
+
+		go func() {
+			wg.Wait() // !!
+			close(out)
+		}()
+		return out
+	}
+
+* Idő előtti megállás
+
+- Mi van akkor, ha nem jön meg minden érték?
+- Mi van akkor, ha hiba történik?
+
+* Idő előtti megállás
+
+- "Eldugul" a csővezeték
+- Erőforrás szivárgás (memória, scheduling)
+
+    out := merge(c1, c2)
+    fmt.Println(<-out) // 4 or 9
+    return
+
+* Idő előtti megállás
+
+Bufferelt channel?
+
+	c := make(chan int, 2)
+	c <- 1 // ok
+	c <- 2 // ok
+	c <- 3 // blokkol
+
+Nem igazi megoldás.
+
+* Explicit cancellation
+
+	func main() {
+		in := gen(2, 3)
+
+		c1 := sq(in)
+		c2 := sq(in)
+
+		done := make(chan struct{}, 2) // !!
+		out := merge(done, c1, c2)
+		fmt.Println(<-out) // 4 or 9
+
+		done <- struct{}{} // !!
+		done <- struct{}{} // !!
+	}
+
+* Explicit cancellation
+
+	func merge(done <-chan struct{}, cs ...<-chan int) <-chan int {
+		var wg sync.WaitGroup
+		out := make(chan int)
+
+		output := func(c <-chan int) {
+			for n := range c {
+				select {
+				case out <- n:
+				case <-done: // !!
+				}
+			}
+			wg.Done()
+		}
+
+		wg.Add(len(cs))
+		for _, c := range cs {
+			go output(c)
+		}
+		go func() {
+			wg.Wait()
+			close(out)
+		}()
+		return out
+	}
+
+* Explicit cancellation
+
+Tudnia kell a küldőnek, hogy hány kimenet van, és annyi done üzenetet küldenie
+
+* Explicit cancellation
+
+	func main() {
+		done := make(chan struct{}) // !!
+		defer close(done) // !!
+
+		in := gen(done, 2, 3)
+
+		c1 := sq(done, in)
+		c2 := sq(done, in)
+
+		out := merge(done, c1, c2)
+		fmt.Println(<-out) // 4 or 9
+	}
+
+A `close()` minden receivernek küld egy üres értéket.
+
+* Explicit cancellation
+
+	func merge(done <-chan struct{}, cs ...<-chan int) <-chan int {
+		var wg sync.WaitGroup
+		out := make(chan int)
+
+		output := func(c <-chan int) {
+			defer wg.Done() // !!
+			for n := range c {
+				select {
+				case out <- n:
+				case <-done:
+					return // !!
+				}
+			}
+		}
+		wg.Add(len(cs))
+		for _, c := range cs {
+			go output(c)
+		}
+		go func() {
+			wg.Wait()
+			close(out)
+		}()
+		return out
+	}
+
+* Explicit cancellation
+
+	func sq(done <-chan struct{}, in <-chan int) <-chan int {
+		out := make(chan int)
+		go func() {
+			defer close(out) // !!
+			for n := range in {
+				select {
+				case out <- n * n:
+				case <-done:
+					return // !!
+				}
+			}
+		}()
+		return out
+	}
+
+* Fafeldolgozás
+
+Egy program, ami egy könyvtár összes fájlának MD5 checksum-ját kiszámolja.
+
+	func main() {
+		m, err := MD5All(os.Args[1]) // !!
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		var paths []string
+		for path := range m {
+			paths = append(paths, path)
+		}
+		sort.Strings(paths) // !!
+		for _, path := range paths {
+			fmt.Printf("%x  %s\n", m[path], path)
+		}
+	}
+
+* Fafeldolgozás
+
+	func MD5All(root string) (map[string][md5.Size]byte, error) {
+		m := make(map[string][md5.Size]byte)
+		err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error { // !!
+			if err != nil {
+				return err
+			}
+			if !info.Mode().IsRegular() {
+				return nil
+			}
+			data, err := ioutil.ReadFile(path) // !!
+			if err != nil {
+				return err
+			}
+			m[path] = md5.Sum(data) // !!
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+		return m, nil
+	}
+
+* Párhuzamos fafeldolgozás
+
+	type result struct {
+		path string
+		sum  [md5.Size]byte
+		err  error
+	}
+
+* Párhuzamos fafeldolgozás
+
+	func sumFiles(done <-chan struct{}, root string) (<-chan result, <-chan error) {
+		c := make(chan result)
+		errc := make(chan error, 1)
+		go func() { // !!
+			var wg sync.WaitGroup
+			err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
+				if !info.Mode().IsRegular() {
+					return nil
+				}
+				wg.Add(1)
+				go func() { // !!
+					data, err := ioutil.ReadFile(path)
+					select {
+					case c <- result{path, md5.Sum(data), err}: // !!
+					case <-done: // !!
+					}
+					wg.Done()
+				}()
+
+* Párhuzamos fafeldolgozás
+
+	// folyt.
+				select {
+				case <-done: // !!
+					return errors.New("walk canceled")
+				default:
+					return nil
+				}
+			})
+			go func() { // !!
+				wg.Wait()
+				close(c) // !!
+			}()
+			errc <- err // !!
+		}()
+		return c, errc
+	}
+
+* Párhuzamos fafeldolgozás
+
+	func MD5All(root string) (map[string][md5.Size]byte, error) {
+		done := make(chan struct{}) // !!
+		defer close(done) // !!
+
+		c, errc := sumFiles(done, root) // !!
+
+		m := make(map[string][md5.Size]byte)
+		for r := range c {
+			if r.err != nil {
+				return nil, r.err
+			}
+			m[r.path] = r.sum
+		}
+		if err := <-errc; err != nil {
+			return nil, err
+		}
+		return m, nil
+	}
+
+* Párhuzamos fafeldolgozás
+
+Mi a gond ezzel?
+
+* Korlátozott párhuzamosság
+
+	func walkFiles(done <-chan struct{}, root string) (<-chan string, <-chan error) {
+		paths := make(chan string)
+		errc := make(chan error, 1)
+		go func() { // !!
+			defer close(paths) // !!
+			errc <- filepath.Walk(root, func(path string, info os.FileInfo, err error) error { // !!
+				if err != nil {
+					return err
+				}
+				if !info.Mode().IsRegular() {
+					return nil
+				}
+				select {
+				case paths <- path: // !!
+				case <-done: // !!
+					return errors.New("walk canceled")
+				}
+				return nil
+			})
+		}()
+		return paths, errc
+	}
+
+* Korlátozott párhuzamosság
+
+	func digester(done <-chan struct{}, paths <-chan string, c chan<- result) {
+		for path := range paths { // !!
+			data, err := ioutil.ReadFile(path)
+			select {
+			case c <- result{path, md5.Sum(data), err}:
+			case <-done:
+				return
+			}
+		}
+	}
+
+* Korlátozott párhuzamosság
+
+	func MD5All(root string) (map[string][md5.Size]byte, error) {
+		done := make(chan struct{})
+		defer close(done)
+
+		paths, errc := walkFiles(done, root)
+
+		c := make(chan result) // !!
+		var wg sync.WaitGroup
+		const numDigesters = 20
+		wg.Add(numDigesters)
+		for i := 0; i < numDigesters; i++ {
+			go func() {
+				digester(done, paths, c) // !!
+				wg.Done()
+			}()
+		}
+		go func() {
+			wg.Wait()
+			close(c) // !!
+		}()
+
+* Korlátozott párhuzamosság
+
+	// folyt.
+
+		m := make(map[string][md5.Size]byte)
+		for r := range c {
+			if r.err != nil {
+				return nil, r.err
+			}
+			m[r.path] = r.sum
+		}
+		if err := <-errc; err != nil { // !!
+			return nil, err
+		}
+		return m, nil
+	}
+
+* Források
+
+.link https://blog.mozilla.org/services/2014/03/12/sane-concurrency-with-go/ Sane Concurrency with Go
+.link http://blog.golang.org/pipelines Go Concurrency Patterns: Pipelines and cancellation
+
+Extra előadás:
+
+.link https://www.youtube.com/watch?v=HxaD_trXwRE Lexical Scanning in Go - Rob Pike

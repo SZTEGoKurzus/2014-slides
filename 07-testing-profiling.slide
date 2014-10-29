@@ -1,0 +1,251 @@
+Go kurzus
+Tesztelés, profiling, reflection
+
+Demeter-Haludka Tamás
+Software architect, Pronovix
+tamas@pronovix.com
+
+* Tesztelés
+
+.image 07/testing.gif
+
+* Tesztelés
+
+Előnyök:
+
+- hosszú távon a karbantartási költségeket egy nagyságrenddel csökkenti
+- magabiztosság
+- nyugodt deploy
+- minimális regresszió
+
+Hátrány: megnyújtja a fejlesztési időt
+
+* Tesztelés menete
+
+- teszt az ideális esetre
+- teszt hibás inputra
+
+* Tesztelés Go-ban
+
+	go test
+
+`*_test.go`
+
+* Tesztelés Go-ban
+
+	func Test*(*testing.T)
+
+Példa:
+
+	func TestFoo(t *testing.T) {
+		result := foo(5)
+		if result != 10 {
+			t.Errorf("Foo result for 5 should be 10, got %d\n", result)
+		}
+	}
+
+* Code coverage
+
+Mekkora része fut le a csomagban lévő kódnak.
+
+A magas code coverage (90%) szükséges, de nem elégséges feltétele egy jól tesztelt csomagnak.
+
+.image 07/coverme.gif
+
+* Code coverage
+
+	go test -coverprofile=coverage.out
+	go tool cover -html=coverage.out
+
+.image 07/htmlcover.png
+
+* Code coverage
+
+	go test -covermode=count -coverprofile=count.out
+	go tool cover -html=count.out
+
+.image 07/htmlcovercount.png
+
+* Goconvey
+
+.image 07/goconvey0.png _ 978
+
+* Goconvey
+
+.link http://goconvey.co GoConvey
+
+- automatikusan futnak a tesztek
+- coverage támogatás
+- teljesen kompatibilis a go test-tel
+
+* Goconvey DSL
+
+	func TestIntegerManipulation(t *testing.T) {
+		Convey("Given a starting integer value", t, func() {
+			x := 42
+			Convey("When incremented", func() {
+				x++
+				Convey("The value should be greater by one", func() {
+					So(x, ShouldEqual, 43)
+				})
+				Convey("The value should NOT be what it used to be", func() {
+					So(x, ShouldNotEqual, 42)
+				})
+			})
+			Convey("When decremented", func() {
+				x--
+				Convey("The value should be lesser by one", func() {
+					So(x, ShouldEqual, 41)
+				})
+				Convey("The value should NOT be what it used to be", func() {
+					So(x, ShouldNotEqual, 42)
+				})
+			})
+		})
+	}
+
+* Debugging
+
+* Debugging
+
+GDB >7.1
+
+	go build app.go
+	gdb app
+
+.link http://golang.org/doc/gdb Go GDB
+
+* Profiling
+
+.image 07/hannibal-profiling.jpg _ 978
+
+* Profiling 
+
+Tesztelésnél van `-cpuprofile` flag.
+
+	var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+
+	func main() {
+		flag.Parse()
+		if *cpuprofile != "" {
+			f, err := os.Create(*cpuprofile)
+			if err != nil {
+				log.Fatal(err)
+			}
+			pprof.StartCPUProfile(f)
+			defer pprof.StopCPUProfile()
+		}
+		...
+
+* Profiling
+
+	go build 07/havlak.go
+	./havlak -cpuprofile="havlak.prof"
+	go tool pprof ./havlak havlak.prof
+
+	(pprof) top10
+	Total: 206 samples
+		 205  99.5%  99.5%      205  99.5% runtime.mach_semaphore_wait
+		   1   0.5% 100.0%        1   0.5% MCentral_Grow
+		   0   0.0% 100.0%      205  99.5% getprofile
+		   0   0.0% 100.0%        1   0.5% main.(*CFG).BaseLoop
+		   0   0.0% 100.0%        1   0.5% main.(*CFG).Path
+		   0   0.0% 100.0%        1   0.5% main.buildGraph
+		   0   0.0% 100.0%        1   0.5% main.main
+		   0   0.0% 100.0%      205  99.5% notetsleep
+		   0   0.0% 100.0%      205  99.5% runtime.CPUProfile
+		   0   0.0% 100.0%        1   0.5% runtime.MCache_Refill
+
+* Profiling
+
+	(pprof) web
+
+.image 07/havlak-graph.png _ 978
+
+* Profiling
+
+.link http://blog.golang.org/profiling-go-programs Profiling Go programs
+
+* Race detection
+
+.image 07/race.jpg
+
+* Race detection
+
+	go test -race mypkg    
+	go run -race mysrc.go 
+	go build -race mycmd  
+	go install -race mypkg
+
+.link http://blog.golang.org/race-detector Race detector
+
+* Reflection
+
+* Reflection
+
+"Egy program képessége arra, hogy a saját struktúráit vizsgálja"
+
+Go-ban a típusrendszerre épül.
+
+Mi van az `interface` típusokkal?
+
+* Reflection
+
+Az `interface` típus változója két értéket tárol: magát a változót, és az eredeti típust.
+
+* Reflection
+
+.play 07/typeof.go
+
+* Reflection
+
+.play 07/valueof.go
+
+* Reflection
+
+.play 07/kind.go
+
+* Reflection
+
+.play 07/interface.go
+
+* Reflection
+
+.play 07/canset.go
+
+* Reflection
+
+.play 07/canset2.go
+
+* Reflection
+
+.play 07/canset3.go
+
+* Reflection
+
+.play 07/canset_struct.go
+
+* Feladat (tesztírás)
+
+.code 07/evenfib_wrong.go
+
+Várt érték: `4613732`
+
+* Megoldás
+
+.code 07/evenfib/evenfib_test.go
+
+	$ go test
+	--- FAIL: TestEvenFib (0.00 seconds)
+		evenfib_test.go:8: Expected 4613732, got: 4613733
+	FAIL
+	exit status 1
+
+* Megoldás
+
+.code 07/evenfib/evenfib.go
+
+	$ go test
+	PASS
+
+* Konzultációs órák
